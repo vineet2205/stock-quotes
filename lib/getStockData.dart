@@ -36,8 +36,11 @@ Future<Stock> fetchStockCompany(String sticker) async {
 
 init(){
 print("inside init");
-var list=<Stock>[];
 
+
+
+var list=<Stock>[];
+/*
 Stock stock1 = new Stock();
 stock1.sticker="FB";
 stock1.companyName="FACEBOOK";
@@ -57,6 +60,7 @@ Stock stock4 = new Stock();
 stock4.sticker="WFC";
 stock4.companyName="WellsFargo";
 list.add(stock4);
+*/
 
 
 

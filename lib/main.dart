@@ -3,6 +3,7 @@ import 'dart:async';
 import 'addStock.dart';
 import 'stock.dart';
 import 'getStockData.dart';
+import 'storeLocalData.dart';
 
 import 'package:flutter/material.dart';
 
@@ -11,6 +12,8 @@ import 'package:flutter/material.dart';
 void main() => runApp(new StockList());
 
 class StockList extends StatefulWidget {
+
+
 
   @override
   createState() => new StockListState(init());
@@ -23,6 +26,16 @@ class StockListState extends State<StockList> {
   StockListState(this.stock);
 
   @override
+  void initState() {
+    super.initState();
+    readStocks().then((List<Stock> stocks) {
+      setState(() {
+        stock = stocks;
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
 
     print("stock is initialized${stock.length}");
@@ -33,7 +46,7 @@ class StockListState extends State<StockList> {
       ),
       home: new Scaffold(
         appBar: new AppBar(
-          title: new Text('Stock Prices'),
+          title: new Center(child: new Text('Watchlist'),),
           actions: <Widget>[
             new Builder(builder: (BuildContext context) {
               return new IconButton(
@@ -59,6 +72,14 @@ class StockListState extends State<StockList> {
                       print("inside setState");
                       stock.add(newStock);
                     });
+
+
+                     writeStocks(stock);
+
+
+
+
+
                   },
                       onError: (e) {
                         throw e;
@@ -72,6 +93,8 @@ class StockListState extends State<StockList> {
         body: _buildStockList(),
       ),
     );
+
+
   }
 
 
