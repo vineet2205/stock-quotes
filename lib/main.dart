@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'addStock.dart';
 import 'stock.dart';
@@ -7,38 +6,31 @@ import 'storeLocalData.dart';
 
 import 'package:flutter/material.dart';
 
-
-
 void main() => runApp(new StockList());
 
 class StockList extends StatefulWidget {
-
-
-
   @override
   createState() => new StockListState(init());
-  
 }
 
 class StockListState extends State<StockList> {
-  var stock = <Stock>[];
+  var stocks = <Stock>[];
 
-  StockListState(this.stock);
+  StockListState(this.stocks);
 
   @override
   void initState() {
     super.initState();
     readStocks().then((List<Stock> stocks) {
       setState(() {
-        stock = stocks;
+        stocks = stocks;
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-
-    print("stock is initialized${stock.length}");
+    print("stock is initialized${stocks.length}");
     return new MaterialApp(
       title: 'Fetch Data Example',
       theme: new ThemeData(
@@ -46,46 +38,39 @@ class StockListState extends State<StockList> {
       ),
       home: new Scaffold(
         appBar: new AppBar(
-          title: new Center(child: new Text('Watchlist'),),
+          title: new Center(
+            child: new Text('Watchlist'),
+          ),
           actions: <Widget>[
             new Builder(builder: (BuildContext context) {
               return new IconButton(
                   icon: new Icon(Icons.add),
                   onPressed: () async {
-                  Stock newStock =  await Navigator.push(
+                    Stock newStock = await Navigator.push(
                       context,
                       new MaterialPageRoute(
                           builder: (context) => new AddStock()),
                     );
-                  print("back");
-                  print(newStock.sticker);
+                    print("back");
+                    print(newStock.sticker);
 
-                  Future<Stock> successor = fetchStockCompany(newStock.sticker);
+                    Future<Stock> successor =
+                        fetchStockCompany(newStock.sticker);
 
-                  successor.then((Stock newStockWithCompany) {
+                    successor.then((Stock newStockWithCompany) {
+                      newStock = newStockWithCompany;
+                      print("inside then");
+                      print(newStockWithCompany.companyName);
 
-                    newStock=newStockWithCompany;
-                    print("inside then");
-                    print(newStockWithCompany.companyName);
-
-                    setState(() {
-                      print("inside setState");
-                      stock.add(newStock);
-                    });
-
-
-                     writeStocks(stock);
-
-
-
-
-
-                  },
-                      onError: (e) {
-                        throw e;
+                      setState(() {
+                        print("inside setState");
+                        stocks.add(newStock);
                       });
 
-
+                      writeStocks(stocks);
+                    }, onError: (e) {
+                      throw e;
+                    });
                   });
             })
           ],
@@ -93,10 +78,7 @@ class StockListState extends State<StockList> {
         body: _buildStockList(),
       ),
     );
-
-
   }
-
 
   Widget _buildStockList() {
     return new ListView.builder(
@@ -108,8 +90,6 @@ class StockListState extends State<StockList> {
         // separate the entries. Note that the divider may be difficult
         // to see on smaller devices.
         itemBuilder: (context, i) {
-
-
           // Add a one-pixel-high divider widget before each row in theListView.
           if (i.isOdd) return new Divider();
 
@@ -124,25 +104,81 @@ class StockListState extends State<StockList> {
   stock.addAll(generateWordPairs().take(10));
   }*/
 
-          if(index>=stock.length){
+          if (index >= stocks.length) {
             return;
           }
-          print ("index is $index and stock is ${stock[index].sticker}");
+          print("index is $index and stock is ${stocks[index].sticker}");
 
-          return getListTileForStock(stock[index]);
-        }
-    );
+          return getListTileForStock(stocks[index]);
+        });
   }
 
   Widget getListTileForStock(Stock stock) {
     return new ListTile(
-      title: new Text(stock.companyName + " : " + stock.sticker),
+      title: new Text(stock.sticker + "\n" + stock.companyName),
+      onLongPress: (){
+        print("inside long press");
+        print("${stock.sticker}");
+
+        setState(() {
+          print("inside setState");
+          stocks.remove(stock);
+        });
+
+      },
       trailing: new Container(
-        child: new FutureBuilder<String>(
+        child: new FutureBuilder<Price>(
           future: fetchStockPrice(stock.sticker),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return new Text(snapshot.data);
+              if (snapshot.data.change < 0) {
+                return new Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    new Text(
+                        "${snapshot.data.currentPrice.toStringAsFixed(2)}",
+                    textAlign: TextAlign.right,),
+                    new Text(
+                      "${snapshot.data.change.toStringAsFixed(2)}",
+                      textAlign: TextAlign.right,
+                      style: new TextStyle(
+                        color: Colors.red,
+                      ),
+                    ),
+                    new Text(
+                      "${snapshot.data.changePercent.toStringAsFixed(2)}%",
+                      textAlign: TextAlign.right,
+                      style: new TextStyle(
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
+                );
+              } else {
+                return new Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    new Text(
+                        "${snapshot.data.currentPrice.toStringAsFixed(2)}",
+                      textAlign: TextAlign.right,
+                    ),
+                    new Text(
+                      "${snapshot.data.change.toStringAsFixed(2)}",
+                      textAlign: TextAlign.right,
+                      style: new TextStyle(
+                        color: Colors.green,
+                      ),
+                    ),
+                    new Text(
+                      "${snapshot.data.changePercent.toStringAsFixed(2)}%",
+                      textAlign: TextAlign.right,
+                      style: new TextStyle(
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                );
+              }
             } else if (snapshot.hasError) {
               return new Text("${snapshot.error}");
             }
@@ -154,6 +190,4 @@ class StockListState extends State<StockList> {
       ),
     );
   }
-
 }
-

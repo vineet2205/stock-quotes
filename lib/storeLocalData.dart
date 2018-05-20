@@ -1,5 +1,3 @@
-
-
 import 'dart:async';
 import 'dart:io';
 import 'stock.dart';
@@ -31,8 +29,8 @@ Future<List<Stock>> readStocks() async {
       String str = contents[i];
       var strArr = str.split(",");
       Stock newStock = new Stock();
-      newStock.sticker=strArr[0];
-      newStock.companyName=strArr[1];
+      newStock.sticker = strArr[0];
+      newStock.companyName = strArr[1];
       print("adding stock${newStock.sticker}");
       stocks.add(newStock);
     }
@@ -47,15 +45,15 @@ writeStocks(List<Stock> stocks) async {
   print("inside writestocks");
   final file = await _localFile;
 
-  StringBuffer sb=new StringBuffer();
+  StringBuffer sb = new StringBuffer();
 
   for (var i = 0; i < stocks.length; i++) {
-    sb.writeln(stocks[i].sticker+","+stocks[i].companyName);
+    sb.writeln(stocks[i].sticker + "," + stocks[i].companyName);
     //file.writeAsString(stocks[i].sticker+","+stocks[i].companyName+"\n");
-    print("writing: "+stocks[i].sticker+","+stocks[i].companyName);
+    print("writing: " + stocks[i].sticker + "," + stocks[i].companyName);
   }
 
-  print("going into file:"+sb.toString());
+  print("going into file:" + sb.toString());
   file.writeAsString(sb.toString());
 
   print("returning from writestocks");

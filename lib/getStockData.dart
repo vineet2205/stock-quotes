@@ -3,28 +3,32 @@ import 'package:http/http.dart' as http;
 import 'stock.dart';
 import 'dart:convert';
 
-  Future<String> fetchStockPrice(String sticker) async {
-    final response =
-    await http.get('https://api.iextrading.com/1.0/stock/$sticker/price');
-    print("hello");
-    print(response.body);
-    //final responseJson = json.decode(response.body);
+Future<Price> fetchStockPrice(String sticker) async {
+  final response = await http.get(
+      'https://api.iextrading.com/1.0/stock/$sticker/quote?displayPercent=true');
 
-    return response.body;
-  }
+  final responseJson = json.decode(response.body);
 
+  Price price = new Price();
 
-  //https://api.iextrading.com/1.0/stock/jpm/company
+  price.currentPrice = responseJson['latestPrice'];
+  price.change = responseJson['change'];
+  price.changePercent = responseJson['changePercent'];
+
+  return price;
+}
+
+//https://api.iextrading.com/1.0/stock/jpm/company
 
 Future<Stock> fetchStockCompany(String sticker) async {
   final response =
-  await http.get('https://api.iextrading.com/1.0/stock/$sticker/company');
+      await http.get('https://api.iextrading.com/1.0/stock/$sticker/company');
   final responseJson = json.decode(response.body);
 
-  Stock stock=new Stock();
+  Stock stock = new Stock();
 
-  stock.sticker=sticker;
-  stock.companyName=responseJson['companyName'];
+  stock.sticker = responseJson['symbol'];
+  stock.companyName = responseJson['companyName'];
 
   print("inside fethstockcompany");
 
@@ -33,13 +37,10 @@ Future<Stock> fetchStockCompany(String sticker) async {
   return stock;
 }
 
+init() {
+  print("inside init");
 
-init(){
-print("inside init");
-
-
-
-var list=<Stock>[];
+  var list = <Stock>[];
 /*
 Stock stock1 = new Stock();
 stock1.sticker="FB";
@@ -62,11 +63,6 @@ stock4.companyName="WellsFargo";
 list.add(stock4);
 */
 
-
-
-print(list.length);
-return list;
-
+  print(list.length);
+  return list;
 }
-
-
