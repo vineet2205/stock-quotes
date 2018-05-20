@@ -23,7 +23,7 @@ class StockListState extends State<StockList> {
     super.initState();
     readStocks().then((List<Stock> stocks) {
       setState(() {
-        stocks = stocks;
+        this.stocks = stocks;
       });
     });
   }
