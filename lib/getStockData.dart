@@ -22,29 +22,19 @@ Future<Price> fetchStockPrice(String sticker) async {
 
 Future<Stock> fetchStockCompany(String sticker) async {
   final response =
-      await http.get('https://api.iextrading.com/1.0/stock/$sticker/company');
+  await http.get('https://api.iextrading.com/1.0/stock/$sticker/company');
+  final responseJson = json.decode(response.body);
 
   Stock stock = new Stock();
 
-  if(response.body.toString() != "Unknown symbol") {
-    final responseJson = json.decode(response.body);
+  stock.sticker = responseJson['symbol'];
+  stock.companyName = responseJson['companyName'];
 
+  print("inside fethstockcompany");
 
-
-    stock.sticker = responseJson['symbol'];
-    stock.companyName = responseJson['companyName'];
-
-    print("inside fethstockcompany");
-
-    print(stock.companyName);
-
-
-  } else {
-    print("unknown symbol");
-  }
+  print(stock.companyName);
 
   return stock;
-
 }
 
 init() {
