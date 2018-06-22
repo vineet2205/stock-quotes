@@ -58,17 +58,36 @@ class StockListState extends State<StockList> {
                         fetchStockCompany(newStock.sticker);
 
                     successor.then((Stock newStockWithCompany) {
-                      newStock = newStockWithCompany;
                       print("inside then");
-                      print(newStockWithCompany.companyName);
+                      if (newStockWithCompany.companyName == null) {
+                        print("symbol is incorrect");
 
-                      setState(() {
-                        print("inside setState");
-                        stocks.add(newStock);
-                      });
+                        final snackBar = new SnackBar(
+                          content: new Text(
+                              'No matching symbol found for: ${newStock.sticker}'),
+                          duration:
+                              new Duration(hours: 0, minutes: 0, seconds: 5),
+                          /*action: new SnackBarAction(
+                              label: 'Undo',
+                              onPressed: () {
+                                // Some code to undo the change!
+                              },
+                            )*/
+                        );
+                        Scaffold.of(context).showSnackBar(snackBar);
+                      } else {
+                        newStock = newStockWithCompany;
+                        print(newStockWithCompany.companyName);
 
-                      writeStocks(stocks);
+                        setState(() {
+                          print("inside setState");
+                          stocks.add(newStock);
+                        });
+
+                        writeStocks(stocks);
+                      }
                     }, onError: (e) {
+                      print("error while getting companyname");
                       throw e;
                     });
                   });
@@ -82,6 +101,7 @@ class StockListState extends State<StockList> {
 
   Widget _buildStockList() {
     return new ListView.builder(
+        itemCount: stocks.length,
         padding: const EdgeInsets.all(16.0),
         // The itemBuilder callback is called once per suggested word pairing,
         // and places each suggestion into a ListTile row.
@@ -105,6 +125,9 @@ class StockListState extends State<StockList> {
   }*/
 
           if (index >= stocks.length) {
+            if (stocks.length == 0 && index == 0) {
+              return new Text("Watchlist is empty. Please add stocks.");
+            }
             return;
           }
           print("index is $index and stock is ${stocks[index].sticker}");
@@ -114,9 +137,22 @@ class StockListState extends State<StockList> {
   }
 
   Widget getListTileForStock(Stock stock) {
-    return new ListTile(
-      title: new Text(stock.sticker + "\n" + stock.companyName),
-      onLongPress: (){
+    return new Dismissible(
+        key: new Key(stock.sticker),
+        onDismissed: (direction) {
+          stocks.remove(stock);
+          writeStocks(stocks);
+
+          /* Scaffold.of(context).showSnackBar(
+            new SnackBar(content: new Text("$item dismissed")));*/
+        },
+        // Show a red background as the item is swiped away
+        background: new Container(color: Colors.red),
+        child: new Column(
+          children: <Widget>[
+            new ListTile(
+              title: new Text(stock.sticker + "\n" + stock.companyName),
+              /*onLongPress: () {
         print("inside long press");
         print("${stock.sticker}");
 
@@ -124,70 +160,86 @@ class StockListState extends State<StockList> {
           print("inside setState");
           stocks.remove(stock);
         });
+        print("saving after deletion");
+        */ /*final snackBar = new SnackBar(
+          content: new Text('Removing ${stock.sticker} from the list'),
+          duration: new Duration(hours:0, minutes:0, seconds:5),
+          */ /**/ /*action: new SnackBarAction(
+                              label: 'Undo',
+                              onPressed: () {
+                                // Some code to undo the change!
+                              },
+                            )*/ /**/ /*
+        );
+        Scaffold.of(context).showSnackBar(snackBar);*/ /*
+        writeStocks(stocks);
+      },*/
+              trailing: new Container(
+                child: new FutureBuilder<Price>(
+                  future: fetchStockPrice(stock.sticker),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      if (snapshot.data.change < 0) {
+                        return new Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            new Text(
+                              "${snapshot.data.currentPrice.toStringAsFixed(2)}",
+                              textAlign: TextAlign.right,
+                            ),
+                            new Text(
+                              "${snapshot.data.change.toStringAsFixed(2)}",
+                              textAlign: TextAlign.right,
+                              style: new TextStyle(
+                                color: Colors.red,
+                              ),
+                            ),
+                            new Text(
+                              "${snapshot.data.changePercent.toStringAsFixed(2)}%",
+                              textAlign: TextAlign.right,
+                              style: new TextStyle(
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return new Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            new Text(
+                              "${snapshot.data.currentPrice.toStringAsFixed(2)}",
+                              textAlign: TextAlign.right,
+                            ),
+                            new Text(
+                              "${snapshot.data.change.toStringAsFixed(2)}",
+                              textAlign: TextAlign.right,
+                              style: new TextStyle(
+                                color: Colors.green,
+                              ),
+                            ),
+                            new Text(
+                              "${snapshot.data.changePercent.toStringAsFixed(2)}%",
+                              textAlign: TextAlign.right,
+                              style: new TextStyle(
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    } else if (snapshot.hasError) {
+                      return new Text("${snapshot.error}");
+                    }
 
-      },
-      trailing: new Container(
-        child: new FutureBuilder<Price>(
-          future: fetchStockPrice(stock.sticker),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              if (snapshot.data.change < 0) {
-                return new Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    new Text(
-                        "${snapshot.data.currentPrice.toStringAsFixed(2)}",
-                    textAlign: TextAlign.right,),
-                    new Text(
-                      "${snapshot.data.change.toStringAsFixed(2)}",
-                      textAlign: TextAlign.right,
-                      style: new TextStyle(
-                        color: Colors.red,
-                      ),
-                    ),
-                    new Text(
-                      "${snapshot.data.changePercent.toStringAsFixed(2)}%",
-                      textAlign: TextAlign.right,
-                      style: new TextStyle(
-                        color: Colors.red,
-                      ),
-                    ),
-                  ],
-                );
-              } else {
-                return new Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    new Text(
-                        "${snapshot.data.currentPrice.toStringAsFixed(2)}",
-                      textAlign: TextAlign.right,
-                    ),
-                    new Text(
-                      "${snapshot.data.change.toStringAsFixed(2)}",
-                      textAlign: TextAlign.right,
-                      style: new TextStyle(
-                        color: Colors.green,
-                      ),
-                    ),
-                    new Text(
-                      "${snapshot.data.changePercent.toStringAsFixed(2)}%",
-                      textAlign: TextAlign.right,
-                      style: new TextStyle(
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                );
-              }
-            } else if (snapshot.hasError) {
-              return new Text("${snapshot.error}");
-            }
-
-            // By default, show a loading spinner
-            return new CircularProgressIndicator();
-          },
-        ),
-      ),
-    );
+                    // By default, show a loading spinner
+                    return new CircularProgressIndicator();
+                  },
+                ),
+              ),
+            ),
+            new Divider(),
+          ],
+        ));
   }
 }
